@@ -3,6 +3,10 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+# Ignore model files
+prod/src/main/resources/models/*.bin
+
+
 
 ### STS ###
 .apt_generated
