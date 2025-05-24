@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -17,29 +18,45 @@ import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig {
+public class SecurityConfig implements WebMvcConfigurer{
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/login/**", "/error").permitAll()
-                .anyRequest().authenticated()
-            )
-            .oauth2Login(oauth2 -> oauth2
-                .userInfoEndpoint(userInfo -> userInfo
-                    .userService(customOAuth2UserService())
-                )
-            )
-            .formLogin(form -> form
-                .permitAll()
-            );
-        
-        return http.build();
+        @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")  // Allow CORS for all endpoints
+                .allowedOrigins("http://localhost:5173","http://localhost:5174","http://192.168.1.4:5173")  // Front-end React app URL
+                .allowedMethods("GET", "POST", "PUT", "DELETE")  // Allowed methods
+                .allowedHeaders("*")  // Allow any headers
+                .allowCredentials(true);  // Allow cookies if needed
     }
+
+@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+        .cors(cors -> {}) // <-- Enable CORS
+        .csrf(AbstractHttpConfigurer::disable)
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/", "/home", "/resume", "/text", "/login/**", "/error", "/app", "/application", "/appdata","/editapp", "/applications", "/deleteapp","/compareresume", "/rewrite").permitAll()
+            .anyRequest().authenticated()
+        )
+            
+        .oauth2Login(oauth2 -> oauth2
+            .userInfoEndpoint(userInfo -> userInfo
+                .userService(customOAuth2UserService())
+            )
+        )
+        .formLogin(form -> form
+            .permitAll()
+        );
+
+    return http.build();
+}
+
+   
 
     @Bean
     public OAuth2UserService<OAuth2UserRequest, OAuth2User> customOAuth2UserService() {
@@ -50,4 +67,5 @@ public class SecurityConfig {
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+  
 }

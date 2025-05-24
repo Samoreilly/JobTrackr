@@ -34,6 +34,7 @@ public class Crud {
     @Autowired
     private HttpSession session;
        
+    private boolean member;
     
     public ResponseEntity<String> login(String username, String email,String password){
         
@@ -45,7 +46,7 @@ public class Crud {
                     .body("Fill in the empty fields");                  
         }
         
-        User user = userRepo.findByUsernameIgnoreCase(username);      
+        User user = userRepo.findByUsernameIgnoreCase(username).orElse(null);      
         
         if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
             return ResponseEntity
@@ -57,41 +58,41 @@ public class Crud {
                 .body("Invalid");
   
     }
-    public ResponseEntity<String> signup(String username, String email, String password){
-        
-        if(email == null || username == null || password == null){
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body("Please fill in the empty fields");
-            
-        }
-        
-        if(userRepo.existsByEmail(email) || userRepo.existsByUsername(username)){
-            
-           return ResponseEntity
-                   .status(HttpStatus.CONFLICT)
-                   .body("Email or username already exists");
-        }
-        
-        if(!checkPassword(password)){
-            
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .body("Your password must contain a symbol e.g. !, &, %, ], {");
-            
-        }
-        
-        String encodedPassword = passwordEncoder.encode(password);
-        
-        User userInfo = new User(username,email,encodedPassword);
-        userRepo.save(userInfo);
-        
-
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body("Enter valid details");
-                   
-    }
+//    public ResponseEntity<String> signup(String username, String email, String password){
+//        
+//        if(email == null || username == null || password == null){
+//            return ResponseEntity
+//                    .status(HttpStatus.BAD_REQUEST)
+//                    .body("Please fill in the empty fields");
+//            
+//        }
+//        
+//        if(userRepo.existsByEmail(email)){
+//            
+//           return ResponseEntity
+//                   .status(HttpStatus.CONFLICT)
+//                   .body("Email or username already exists");
+//        }
+//        
+//        if(!checkPassword(password)){
+//            
+//            return ResponseEntity
+//                    .status(HttpStatus.CONFLICT)
+//                    .body("Your password must contain a symbol e.g. !, &, %, ], {");
+//            
+//        }
+//        
+//        String encodedPassword = passwordEncoder.encode(password);
+//        
+//        User userInfo = new User(username,email,encodedPassword,member);
+//        userRepo.save(userInfo);
+//        
+//
+//        return ResponseEntity
+//                .status(HttpStatus.BAD_REQUEST)
+//                .body("Enter valid details");
+//                   
+//    }
     
     public boolean checkPassword(String password){//used to check if password meets security criteria
         boolean validPassword = false;

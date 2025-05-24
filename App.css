@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@layer base {
+    :root {
+        --font-bebas: "Bebas Neue", sans-serif;
+    }
+}
+
+@layer utilities {
+    .font-bebas {
+        font-family: var(--font-bebas);
+    }
+}
+
+@layer base {
+    .font-comic {
+        font-family: 'Comic Neue', sans-serif;
+    }
+}
+
+@layer utilities {
+    @keyframes scroll-bg {
+        0% {
+            background-position: 0% center;
+        }
+        100% {
+            background-position: -3000px center;  /* This should match your background-size width */
+        }
+    }
+
+    .animate-scroll-bg {
+        animation: scroll-bg 40s linear infinite;
+    }
+} 

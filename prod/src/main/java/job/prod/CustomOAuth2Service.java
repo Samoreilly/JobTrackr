@@ -6,6 +6,7 @@ package job.prod;
 
 import java.util.Collections;
 import java.util.Map;
+import job.prod.repo.Applications;
 import job.prod.repo.User;
 import job.prod.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,14 +48,31 @@ public class CustomOAuth2Service implements OAuth2UserService<OAuth2UserRequest,
 
        if (email != null) {
 
-           User user = userRepo.findByEmail(email).orElseGet(() -> {
-               System.out.println("Creating new user with email: " + email);
-               User newUser = new User();
-               newUser.setEmail(email);
-               newUser.setUsername(name != null ? name : email.split("@")[0]);
-               newUser.setPassword("OAUTH2_USER"); // Set a placeholder
-               return userRepo.save(newUser);
-           });
+            User user = userRepo.findByEmail(email).orElseGet(() -> {
+                System.out.println("Creating new user with email: " + email);
+                String baseUsername = name != null ? name : email.split("@")[0];
+                String username = baseUsername;
+
+                int count = 0;
+                // Try to find unique username by appending numbers
+                while (userRepo.existsByUsername(username)) {
+                    count++;
+                    username = baseUsername + count;
+                }
+
+                User newUser = new User();
+                newUser.setEmail(email);
+                newUser.setUsername(username);
+                newUser.setPassword("OAUTH2_USER");
+                newUser.setMember(false);
+
+
+                User savedUser = userRepo.save(newUser);
+
+                return savedUser;
+            });
+
+           
            System.out.println("User in database: " + user);
        } else {
            System.out.println("Email is null - cannot create user");
