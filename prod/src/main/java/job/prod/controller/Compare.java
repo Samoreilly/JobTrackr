@@ -33,16 +33,16 @@ public class Compare {
     public void init() {
         Properties props = new Properties();
         props.setProperty("annotators", "tokenize,ssplit,pos,lemma");
-        pipeline = new StanfordCoreNLP(props);
+        pipeline = new StanfordCoreNLP(props);//setup data pipeline
     }
     
     public String parseResume(String jobDesc, MultipartFile file) throws IOException {
-        String fileName = file.getOriginalFilename().toLowerCase();
+        String fileName = file.getOriginalFilename().toLowerCase(); 
         String text;
 
         if (fileName.endsWith(".pdf")) {
             text = parsePDF(file);
-        } else if (fileName.endsWith(".docx")) {
+        } else if (fileName.endsWith(".docx")) {//parsing..
             text = parseDocx(file);
         } else {
             throw new IllegalArgumentException("Unsupported file type. Only PDF and DOCX files are supported.");
@@ -54,14 +54,14 @@ public class Compare {
         StringBuilder result = new StringBuilder();
         for(CoreLabel token : document.tokens()){
             String word = token.word();
-            String pos = token.get(CoreAnnotations.PartOfSpeechAnnotation.class);
-            String ner = token.get(CoreAnnotations.NamedEntityTagAnnotation.class);
-            String lemma = token.get(CoreAnnotations.LemmaAnnotation.class);
+            String pos = token.get(CoreAnnotations.PartOfSpeechAnnotation.class);//determine what it is, verb, adjective etc
+            String ner = token.get(CoreAnnotations.NamedEntityTagAnnotation.class);//returns formal version of word
+            String lemma = token.get(CoreAnnotations.LemmaAnnotation.class);//gets normal word
 
             result.append(String.format("Word: %-15s POS: %-6s NER: %-12s Lemma: %-15s\n", word, pos, ner, lemma));
         }
 
-        jobD = jobDesc;
+        jobD = jobDesc;//job description user enters
         System.out.println(result.toString());
         return result.toString();
     }
@@ -70,14 +70,14 @@ public class Compare {
         CoreDocument document = new CoreDocument(text);
         pipeline.annotate(document);
 
-        Set<String> stopwords = Set.of("the", "and", "is", "a", "an", "of", "to", "in", "for", "on", "with");
+        Set<String> stopwords = Set.of("the", "and", "is", "a", "an", "of", "to", "in", "for", "on", "with");//words to remove
         List<String> keywords = new ArrayList<>();
 
         for (CoreLabel token : document.tokens()) {
             String lemma = token.get(CoreAnnotations.LemmaAnnotation.class).toLowerCase();
             String pos = token.get(CoreAnnotations.PartOfSpeechAnnotation.class);
 
-            if ((pos.startsWith("NN") || pos.startsWith("VB") || pos.startsWith("JJ") || pos.startsWith("RB"))
+            if ((pos.startsWith("NN") || pos.startsWith("VB") || pos.startsWith("JJ") || pos.startsWith("RB"))//pulls out adverbs, nouns etc and stop words
                 && lemma.length() > 2 
                 && !stopwords.contains(lemma)) {
                 keywords.add(lemma);
@@ -88,21 +88,22 @@ public class Compare {
     }    
 
     public ComparisonResult compareJobDesc(List<String> resumeKeywords) {
-        if (resumeKeywords == null || resumeKeywords.isEmpty()) return new ComparisonResult(0, Set.of(),Set.of());
+        if (resumeKeywords == null || resumeKeywords.isEmpty())
+            return new ComparisonResult(0, Set.of(),Set.of());//empty check
 
         System.out.println("Resume Keywords: " + resumeKeywords);
 
         Set<String> processedResumeKeywords = resumeKeywords.stream()
             .map(String::toLowerCase)
             .filter(kw -> kw.length() > 2)
-            .collect(Collectors.toSet());
+            .collect(Collectors.toSet());//make all lowercase and filter short words out
 
-        Set<String> stopwords = Set.of("the", "and", "is", "a", "an", "of", "to", "in", "for", "on", "with");
+        Set<String> stopwords = Set.of("the", "and", "is", "a", "an", "of", "to", "in", "for", "on", "with");//words that dont matter
 
         double totalScore = 0;
         int validJobsProcessed = 0;
 
-        CoreDocument document = new CoreDocument(jobD);
+        CoreDocument document = new CoreDocument(jobD);//pass in users job description they want to compare to the parsed resume
         pipeline.annotate(document);
 
         Set<String> jobKeywords = document.tokens().stream()
@@ -110,11 +111,11 @@ public class Compare {
                 String lemma = token.get(CoreAnnotations.LemmaAnnotation.class).toLowerCase();
                 String pos = token.get(CoreAnnotations.PartOfSpeechAnnotation.class);
                 return (pos.startsWith("NN") || pos.startsWith("VB") || 
-                        pos.startsWith("JJ") || pos.startsWith("RB")) &&
+                        pos.startsWith("JJ") || pos.startsWith("RB")) &&//filter all non keywords, nouns etc in job description the user entered
                         lemma.length() > 2 && 
                         !stopwords.contains(lemma);
             })
-            .map(token -> token.get(CoreAnnotations.LemmaAnnotation.class).toLowerCase())
+            .map(token -> token.get(CoreAnnotations.LemmaAnnotation.class).toLowerCase())//get normal verswion of all words
             .collect(Collectors.toSet());
         
 
@@ -126,10 +127,9 @@ public class Compare {
                 missedKeywords.remove(resumeKeyword);
             } else {
                 for (String jobKeyword : jobKeywords) {
-                    if (jobKeyword.contains(resumeKeyword) || resumeKeyword.contains(jobKeyword)) {
+                    if (jobKeyword.contains(resumeKeyword) || resumeKeyword.contains(jobKeyword)) {//this method was used to make a collection of all matched/missed keywords to be given as feedback
                         if (jobKeyword.length() > 3 && resumeKeyword.length() > 3) {
                             matchedKeywords.add(resumeKeyword);
-
                             missedKeywords.remove(jobKeyword);
                             break;
                         }
@@ -154,7 +154,8 @@ public class Compare {
         validJobsProcessed++;
 
         int finalScore = validJobsProcessed == 0 ? 0 : 
-                        (int) Math.round((totalScore / validJobsProcessed) * 2.0);
+        (int) Math.round((totalScore / validJobsProcessed) * 2.0);//scoring system as it marks them quite harsh
+        
         finalScore = Math.min(100, finalScore);
 
         System.out.println("Final score: " + finalScore);
