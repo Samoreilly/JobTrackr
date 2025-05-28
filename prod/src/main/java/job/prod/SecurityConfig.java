@@ -28,7 +28,7 @@ public class SecurityConfig implements WebMvcConfigurer{
         @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")  // Allow CORS for all endpoints
-                .allowedOrigins("http://localhost:5173","http://localhost:5174","http://192.168.1.4:5173")  // Front-end React app URL
+                .allowedOrigins("http://localhost:5173","http://localhost:5174","http://192.168.1.4:5173")
                 .allowedMethods("GET", "POST", "PUT", "DELETE")  // Allowed methods
                 .allowedHeaders("*")  // Allow any headers
                 .allowCredentials(true);  // Allow cookies if needed
@@ -40,11 +40,12 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
         .cors(cors -> {}) // <-- Enable CORS
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/", "/home", "/resume", "/text", "/login/**", "/error", "/app", "/application", "/appdata","/editapp", "/applications", "/deleteapp","/compareresume", "/rewrite").permitAll()
+            .requestMatchers("/", "/home", "/resume", "/text", "/login/**", "/error", "/app", "/application", "/appdata","/editapp", "/applications", "/deleteapp","/compareresume", "/rewrite", "haspaid","/payments/**","/webhook","/id").permitAll()
             .anyRequest().authenticated()
         )
             
         .oauth2Login(oauth2 -> oauth2
+            .defaultSuccessUrl("http://localhost:5173/home", true)
             .userInfoEndpoint(userInfo -> userInfo
                 .userService(customOAuth2UserService())
             )

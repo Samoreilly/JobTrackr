@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import job.prod.entity.ApplicationDTO;
 import job.prod.entity.CompareDTO;
 import job.prod.entity.ComparisonResult;
@@ -19,6 +20,7 @@ import job.prod.repo.ApplicationsRepo;
 import job.prod.repo.User;
 import job.prod.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.couchbase.CouchbaseProperties.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -65,10 +67,23 @@ public class CrudController {
 //     return crud.signup(username, email, password);
 //    }
 //    
+    @GetMapping("/id")
+    public ResponseEntity<?> currentSession(HttpSession session){
+        
+        Object id = session.getAttribute("id");
+    if (id == null) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
+    }
+
+    Optional<User> user = userRepo.findById((Long) id);
+    return user.map(ResponseEntity::ok)
+               .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());        
+    }
+    
     @PostMapping("/application")
     public ResponseEntity<String> application(@RequestBody ApplicationDTO form){ 
         
-        session.setAttribute("id", 10L);
+        session.setAttribute("id", 1L);
         Long userId = (Long) session.getAttribute("id");
         
         User user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
@@ -89,7 +104,7 @@ public class CrudController {
     @GetMapping("/appdata")
     public List<Applications> getAppData(){
         
-        session.setAttribute("id", 10L);
+        session.setAttribute("id", 1L);
         Long id = (Long) session.getAttribute("id");
         
 
@@ -99,7 +114,7 @@ public class CrudController {
     }
     @PostMapping("/editapp")
     public ResponseEntity<String> editApp(@RequestBody Applications form){
-        session.setAttribute("id", 10L);
+        session.setAttribute("id", 1L);
         
         Applications appId = appRepo.findApplicationsById(form.getId());     
         
@@ -117,7 +132,7 @@ public class CrudController {
     }
     @PostMapping("/deleteapp")
     public ResponseEntity<String> deleteApp(@RequestParam String id){
-        session.setAttribute("id", 10L);
+        session.setAttribute("id", 1L);
         
         Long trackId = Long.parseLong(id);
         
@@ -151,6 +166,17 @@ public class CrudController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
+    }
+    @GetMapping("/haspaid")
+    public ResponseEntity<Boolean> hasUserPaid(){
+        
+        session.setAttribute("id", 1L);
+        Long userId = (Long) session.getAttribute("id");
+        
+        
+        User user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        return ResponseEntity.ok(user.hasPaid());
+        
     }
 
             

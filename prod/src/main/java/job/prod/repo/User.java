@@ -7,8 +7,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name = "users")
 public class User {
     
    @Id
@@ -26,6 +28,9 @@ public class User {
    
    @Column(columnDefinition = "BOOLEAN DEFAULT false")
    private boolean member;
+   
+   @Column(columnDefinition = "BOOLEAN DEFAULT false")   
+   private boolean hasPaid;
 
    public boolean isMember() {
         return member;
@@ -66,13 +71,25 @@ public class User {
        this.password = password;
    }
 
-  
-   public User() {}
+    public boolean hasPaid() {
+        return hasPaid;
+    }
 
-   public User(String username, String email, String password,boolean member) {
+    public void setHasPaid(boolean hasPaid) {
+        this.hasPaid = hasPaid;
+    }
+   
+
+  
+   public User(){
+       
+   }
+
+   public User(String username, String email, String password,boolean member,boolean hasPaid) {
        this.username = username;
        this.email = email;
        this.password = password;
        this.member = member;
+       this.hasPaid = hasPaid;
    }
 }

@@ -33,10 +33,23 @@ public class ResumeController {
     @Autowired
     public JobMatch js;
     
+    private byte[] storedFileBytes;
+    private String storedFileName;
+    private String storedFileContentType;
+    
+    private String resText = null;
+    private MultipartFile storedFile;
+    
     @PostMapping("/resume")
     public ResponseEntity<UserScore> getResume(@RequestParam("file") MultipartFile file) throws IOException{
+        
+        storedFileBytes = file.getBytes();
+        storedFileName = file.getOriginalFilename();
+        storedFileContentType = file.getContentType();
+        
         UserScore result = res.scoreResume(file);
         String nlpText = js.parseResume(file);
+        resText = nlpText;
         int score = js.extractKeywords(nlpText);
         result.setScore(score);
         System.out.println("***************************************_________________________________**************************************************************"+score);
@@ -49,12 +62,18 @@ public class ResumeController {
     if(rawText != null){
         rawText = res.parsePDF(file);
     }
-    return getText(rawText);
-    
+    return "";
     }
     @GetMapping("/text")
-    public String getText(String text){
-        return text;
+    public ResponseEntity<String> getText() throws IOException{
+        if (storedFileBytes == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No resume file uploaded");
+        }
+
+        MultipartFile file = new InMemoryMultipartFile(storedFileName, storedFileBytes, storedFileContentType);
+
+        String text = res.parseResume(file);
+    return ResponseEntity.ok(text);
     }
     @PostMapping("/rewrite")
     public ResponseEntity<?> rewrite(@RequestParam MultipartFile file) {

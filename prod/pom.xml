@@ -32,6 +32,13 @@
 		<maven.compiler.target>23</maven.compiler.target>
 	</properties>
 	<dependencies>
+            
+                <dependency>
+                    <groupId>org.postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                    <version>42.6.0</version> <!-- or latest stable -->
+                </dependency>
+          
                 <dependency>
                     <groupId>com.google.code.gson</groupId>
                     <artifactId>gson</artifactId>

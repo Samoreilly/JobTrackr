@@ -4,6 +4,8 @@
  */
 package job.prod;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.util.Collections;
 import java.util.Map;
 import job.prod.repo.Applications;
@@ -18,9 +20,12 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Component
 public class CustomOAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
+    
     @Autowired
     private UserRepo userRepo;
 
@@ -31,12 +36,10 @@ public class CustomOAuth2Service implements OAuth2UserService<OAuth2UserRequest,
        OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate = new DefaultOAuth2UserService();
        OAuth2User oAuth2User = delegate.loadUser(userRequest);
 
-       // Print all attributes for debugging
        System.out.println("All OAuth2 Attributes:");
        oAuth2User.getAttributes().forEach((key, value) -> 
            System.out.println(key + ": " + value));
 
-       // Get registration ID (should be "google" in your case)
        String registrationId = userRequest.getClientRegistration().getRegistrationId();
        System.out.println("Registration ID: " + registrationId);
 
@@ -65,12 +68,20 @@ public class CustomOAuth2Service implements OAuth2UserService<OAuth2UserRequest,
                 newUser.setUsername(username);
                 newUser.setPassword("OAUTH2_USER");
                 newUser.setMember(false);
+                newUser.setHasPaid(false);
 
 
                 User savedUser = userRepo.save(newUser);
 
                 return savedUser;
             });
+            ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attr != null) {
+                HttpServletRequest request = attr.getRequest();
+                HttpSession session = request.getSession(true);
+                session.setAttribute("id", user.getId());
+                System.out.println("Stored userId in session: " + user.getId());
+            }
 
            
            System.out.println("User in database: " + user);
@@ -81,7 +92,7 @@ public class CustomOAuth2Service implements OAuth2UserService<OAuth2UserRequest,
        return new DefaultOAuth2User(
            Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
            oAuth2User.getAttributes(),
-           "email"  // Name attribute key
+           "email"
        );
    }
    }
