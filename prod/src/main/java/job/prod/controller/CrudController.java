@@ -27,6 +27,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,6 +36,7 @@ import org.springframework.web.multipart.MultipartFile;
  *
  * @author samor
  */
+@RequestMapping("/api")
 @RestController
 public class CrudController {
     
@@ -83,7 +85,7 @@ public class CrudController {
     @PostMapping("/application")
     public ResponseEntity<String> application(@RequestBody ApplicationDTO form){ 
         
-        session.setAttribute("id", 1L);
+//        session.setAttribute("id", 1L);
         Long userId = (Long) session.getAttribute("id");
         
         User user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
@@ -114,7 +116,7 @@ public class CrudController {
     }
     @PostMapping("/editapp")
     public ResponseEntity<String> editApp(@RequestBody Applications form){
-        session.setAttribute("id", 1L);
+//        session.setAttribute("id", 1L);
         
         Applications appId = appRepo.findApplicationsById(form.getId());     
         
@@ -132,8 +134,8 @@ public class CrudController {
     }
     @PostMapping("/deleteapp")
     public ResponseEntity<String> deleteApp(@RequestParam String id){
-        session.setAttribute("id", 1L);
-        
+//        session.setAttribute("id", 1L);
+//        
         Long trackId = Long.parseLong(id);
         
         Applications appId = appRepo.findApplicationsById(trackId);     
@@ -170,11 +172,15 @@ public class CrudController {
     @GetMapping("/haspaid")
     public ResponseEntity<Boolean> hasUserPaid(){
         
-        session.setAttribute("id", 1L);
         Long userId = (Long) session.getAttribute("id");
+        
+        if(userId == null){
+            return ResponseEntity.ok(false);
+        }
         
         
         User user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        System.out.println("-<,,,,,,,,,,>........"+ user.hasPaid());
         return ResponseEntity.ok(user.hasPaid());
         
     }

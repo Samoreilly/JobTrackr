@@ -40,7 +40,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
         .cors(cors -> {}) // <-- Enable CORS
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/", "/home", "/resume", "/text", "/login/**", "/error", "/app", "/application", "/appdata","/editapp", "/applications", "/deleteapp","/compareresume", "/rewrite", "haspaid","/payments/**","/webhook","/id").permitAll()
+            .requestMatchers("/api/**","/", "/home", "/resume", "/text", "/login/**", "/error", "/app", "/application", "/appdata","/editapp", "/applications", "/deleteapp","/compareresume", "/rewrite", "haspaid","/payments/**","/webhook","/id").permitAll()
             .anyRequest().authenticated()
         )
             

@@ -12,7 +12,7 @@ import java.util.Map;
 import job.prod.entity.FrontendConfig;
 
 @RestController
-@RequestMapping("/payments")
+@RequestMapping("/api/payments")
 public class PaymentController {
     
     private final FrontendConfig frontendConfig;
