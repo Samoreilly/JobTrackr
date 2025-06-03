@@ -6,7 +6,7 @@ target/
 # Ignore model files
 prod/src/main/resources/models/*.bin
 
-
+application.properties
 
 ### STS ###
 .apt_generated
